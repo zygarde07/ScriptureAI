@@ -1,0 +1,44 @@
+/* The orb floats above the page, centred horizontally. Its height and
+   position are set by the animation code (Orb.jsx). pointer-events: none
+   means it never blocks clicks, typing or scrolling. */
+.orb-float {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 420px;
+  height: 420px;
+  margin-left: -210px;
+  z-index: 7;
+  pointer-events: none;
+}
+
+.orb-float canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Simple CSS orb: shown when WebGL is unavailable or motion is reduced. */
+.orb-fallback {
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 28%, #fff1cf 0, #f2b45a 9%, #c9622b 30%, #8a1e25 54%, #3a1015 78%, #1a0807 100%);
+  box-shadow:
+    0 0 60px 12px rgba(228, 154, 45, 0.28),
+    0 0 140px 40px rgba(165, 34, 39, 0.28),
+    inset -22px -26px 50px rgba(20, 5, 5, 0.65),
+    inset 14px 14px 36px rgba(255, 220, 160, 0.18);
+  animation: orb-breathe 6s ease-in-out infinite;
+}
+
+/* the simple orb glows a little brighter while an answer is being found */
+.orb-float[data-state="thinking"] .orb-fallback {
+  animation-duration: 1.8s;
+}
+
+@keyframes orb-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}

@@ -1,0 +1,48 @@
+/* A full-size layer behind everything in the chat area (it is the first
+   child of .main). It has no background of its own: only the artwork,
+   which is a transparent PNG. It ignores the mouse and fades away when a
+   conversation starts. */
+.temple-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden; /* the artwork is clipped to the chat area on narrow screens */
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.9s ease;
+  animation: temple-in 2.6s ease 0.5s backwards;
+}
+
+.temple-overlay[data-visible="false"] {
+  opacity: 0;
+}
+
+@keyframes temple-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* the colour filter is defined here, but takes no space */
+.temple-overlay__defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+/* Position and size are set by TempleOverlay.jsx (they depend on the orb's spot).
+   The low opacity and the warm filter reproduce the soft, copper look of the
+   reference design: the artwork is atmosphere, the orb stays the focus. */
+.temple-overlay__img {
+  position: absolute;
+  max-width: none;
+  opacity: 0.26;
+  filter: url(#temple-warm);
+  user-select: none;
+}
+
+@media (max-width: 700px) {
+  .temple-overlay__img {
+    opacity: 0.2;
+  }
+}

@@ -6,3 +6,5 @@ langchain-text-splitters==1.1.1
 google-genai==1.64.0
 python-dotenv==1.2.1
 numpy==1.26.4
+fastapi==0.143.0
+uvicorn==0.54.0

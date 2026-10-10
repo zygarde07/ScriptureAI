@@ -17,6 +17,10 @@ pdfs/*
 scriptures/
 *.pdf
 
+# Frontend (web/)
+web/node_modules/
+web/dist/
+
 # Python
 __pycache__/
 *.py[cod]

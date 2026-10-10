@@ -1,0 +1,52 @@
+/* =========================================================
+   DESIGN TOKENS — every colour, font and size lives here.
+   A warm, dark "night library" base. The parchment, crimson and
+   gold of the ScriptureAI brand appear as light and accents.
+   ========================================================= */
+:root {
+  color-scheme: dark;
+
+  /* Night backgrounds */
+  --night: #150b0a;
+  --night-2: #1d0f0d;
+  --night-3: #2a1412;
+  --oxblood: #3a1015;
+  --burgundy: #5a1620;
+
+  /* Brand accents */
+  --crimson: #a52227;
+  --crimson-bright: #cf4046;
+  --gold: #bd8a38;
+  --gold-light: #e0bf72;
+  --amber: #e49a2d;
+
+  /* Parchment text */
+  --cream: #f2e4c8;
+  --cream-soft: rgba(242, 228, 200, 0.86);
+  --muted: rgba(242, 228, 200, 0.6);
+  --faint: rgba(242, 228, 200, 0.38);
+
+  /* Lines and surfaces */
+  --line: rgba(242, 228, 200, 0.12);
+  --line-gold: rgba(189, 138, 56, 0.4);
+  --surface: rgba(242, 228, 200, 0.05);
+  --surface-strong: rgba(242, 228, 200, 0.09);
+
+  /* Fonts */
+  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-accent: "Cormorant Garamond", Georgia, serif;
+  --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  --read-width: 46rem; /* comfortable message column */
+  --sidebar-width: 17rem;
+  --topbar-height: 3.5rem;
+}
