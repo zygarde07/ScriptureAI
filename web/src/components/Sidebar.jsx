@@ -1,12 +1,35 @@
+import { useRef } from "react";
 import { PlusIcon, CloseIcon } from "./icons.jsx";
 
 // The conversation history. It slides away when the sidebar is closed.
-export default function Sidebar({ chats, activeId, onNewChat, onSelect, onDelete }) {
+// On a phone it is a drawer: swipe it to the left to close it.
+export default function Sidebar({ chats, activeId, onNewChat, onSelect, onDelete, onClose }) {
   // newest conversation first
   const sorted = [...chats].sort((a, b) => b.updatedAt - a.updatedAt);
 
+  // Swipe-to-close: remember where the finger went down, compare where it lifted.
+  const touchStart = useRef(null);
+  const handleTouchStart = (e) => {
+    touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  };
+  const handleTouchEnd = (e) => {
+    const start = touchStart.current;
+    touchStart.current = null;
+    if (!start || !onClose) return;
+    const dx = e.changedTouches[0].clientX - start.x;
+    const dy = e.changedTouches[0].clientY - start.y;
+    // a clear leftward swipe that is more sideways than up/down
+    if (dx < -60 && Math.abs(dx) > Math.abs(dy) * 1.5) onClose();
+  };
+
   return (
-    <aside className="sidebar" id="sidebar" aria-label="Conversations">
+    <aside
+      className="sidebar"
+      id="sidebar"
+      aria-label="Conversations"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <div className="sidebar__inner">
         <button type="button" className="new-chat" onClick={onNewChat}>
           <PlusIcon size={18} />

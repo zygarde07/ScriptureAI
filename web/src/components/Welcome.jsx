@@ -1,14 +1,18 @@
 import { forwardRef, useLayoutEffect } from "react";
 import gsap from "gsap";
 import { dur } from "../motion/utils.js";
+import { OpenBookIcon, LotusIcon, MeditationIcon, BowIcon, ChevronRightIcon } from "./icons.jsx";
 
 // Suggestions to get started. They are only ideas for questions:
 // clicking one simply sends it like any other question.
+// The icons and chevrons are shown on phones (see app.css), where the
+// suggestions are stacked cards.
 const SUGGESTIONS = [
-  "What does the Bhagavad Gita say about dharma?",
-  "Explain karma yoga in simple words",
-  "What do these texts say about breath and health?",
-  "How was archery taught in ancient India?",
+  // (no book titles here: the library's contents are confidential)
+  { text: "What is dharma, and how should one live by it?", Icon: OpenBookIcon, tone: "ember" },
+  { text: "Explain karma yoga in simple words", Icon: LotusIcon, tone: "rose" },
+  { text: "What do these texts say about breath and health?", Icon: MeditationIcon, tone: "gold" },
+  { text: "How was archery taught in ancient India?", Icon: BowIcon, tone: "ember" },
 ];
 
 // The first screen: a heading, a short description and four ideas.
@@ -39,14 +43,18 @@ const Welcome = forwardRef(function Welcome({ onPick }, ref) {
 
       <p className="welcome__text welcome__reveal">
         Ask a question and read answers drawn from the scriptures and books in
-        your library, with the passages behind them.
+        your library.
       </p>
 
       <ul className="chips welcome__reveal" aria-label="Suggested questions">
-        {SUGGESTIONS.map((q) => (
-          <li key={q}>
-            <button type="button" className="chip" onClick={() => onPick(q)}>
-              {q}
+        {SUGGESTIONS.map(({ text, Icon, tone }) => (
+          <li key={text}>
+            <button type="button" className="chip" onClick={() => onPick(text)}>
+              <span className={`chip__icon chip__icon--${tone}`}>
+                <Icon size={26} />
+              </span>
+              <span className="chip__text">{text}</span>
+              <ChevronRightIcon className="chip__chevron" size={20} />
             </button>
           </li>
         ))}

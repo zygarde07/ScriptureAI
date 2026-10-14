@@ -1,7 +1,14 @@
-# Secrets
+# Secrets (any .env file, in any folder, except the examples)
 .env
 *.env
+.env.*
 !.env.example
+
+# Downloaded model files and any private data bundle: never publish these
+models/
+data/
+*.zip
+*.tar.gz
 
 # Virtual environments
 venv/
@@ -32,3 +39,14 @@ Thumbs.db
 .DS_Store
 .vscode/
 .idea/
+
+# Extra safety nets: private data and credentials must never be committed, wherever they end up
+node_modules/
+.data_tmp/
+*.sqlite3
+*.onnx
+*.npy
+*.jsonl.gz
+*.7z
+*.pem
+*.key

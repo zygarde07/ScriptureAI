@@ -1,0 +1,2 @@
+# keep shell scripts with Unix line endings (Render runs Linux)
+*.sh text eol=lf

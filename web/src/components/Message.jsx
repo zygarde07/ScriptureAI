@@ -3,12 +3,17 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import gsap from "gsap";
 import { dur } from "../motion/utils.js";
-import SourcesPanel from "./SourcesPanel.jsx";
 import { RetryIcon } from "./icons.jsx";
 
 // Links in answers open in a new tab, safely.
 const markdownComponents = {
   a: ({ node, ...props }) => <a {...props} target="_blank" rel="noopener noreferrer" />,
+  // Wide tables scroll sideways inside their own box instead of pushing the whole page wider on a phone.
+  table: ({ node, ...props }) => (
+    <div className="table-scroll">
+      <table {...props} />
+    </div>
+  ),
 };
 
 // One message in the conversation: yours, an answer, or a note
@@ -20,7 +25,7 @@ export default function Message({ message, onRetry, retryDisabled }) {
   useLayoutEffect(() => {
     if (message.role !== "assistant" || !message.fresh || message.status !== "done") return;
     const ctx = gsap.context(() => {
-      gsap.from(".prose > *, .sources", {
+      gsap.from(".prose > *", {
         y: 14,
         opacity: 0,
         duration: dur(0.7),
@@ -63,7 +68,6 @@ export default function Message({ message, onRetry, retryDisabled }) {
           {message.content}
         </ReactMarkdown>
       </div>
-      <SourcesPanel sources={message.sources} />
     </article>
   );
 }

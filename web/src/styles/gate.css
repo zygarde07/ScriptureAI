@@ -1,0 +1,96 @@
+/* The access-code screen and the "waking up" screen.
+   Same night-and-gold look as the rest of the app. */
+.gate {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 24%, rgba(165, 34, 39, 0.3), transparent 70%),
+    var(--night);
+}
+
+.gate--blank {
+  /* shown for a split second while the server is asked; just the dark background */
+  background: var(--night);
+}
+
+.gate__card {
+  width: min(100%, 24rem);
+  text-align: center;
+}
+
+.gate__brand {
+  margin-bottom: var(--space-5);
+  font-size: 1.6rem;
+}
+
+.gate__title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.gate__text {
+  margin: var(--space-2) 0 var(--space-5);
+  font-family: var(--font-accent);
+  font-size: 1.15rem;
+  color: var(--muted);
+}
+
+.gate__input {
+  width: 100%;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid var(--line-gold);
+  border-radius: 1rem;
+  background: rgba(34, 16, 14, 0.88);
+  color: var(--cream);
+  font-family: var(--font-ui);
+  font-size: 1rem; /* 16px: stops iPhones zooming in when the box is tapped */
+  text-align: center;
+  outline: 0;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.gate__input:focus {
+  border-color: var(--gold-light);
+  box-shadow: 0 0 0 3px rgba(189, 138, 56, 0.18);
+}
+
+.gate__button {
+  width: 100%;
+  min-height: 3rem;
+  margin-top: var(--space-3);
+  border: 0;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, var(--amber), var(--crimson));
+  color: #fff4dc;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gate__button:hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(228, 154, 45, 0.4);
+}
+
+.gate__button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.gate__problem {
+  min-height: 1.5rem;
+  margin-top: var(--space-3);
+  font-size: 0.9rem;
+  color: var(--crimson-bright);
+}
+
+.gate__wave {
+  justify-content: center;
+  margin-top: var(--space-2);
+}

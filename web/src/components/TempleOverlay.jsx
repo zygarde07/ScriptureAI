@@ -13,6 +13,11 @@ import "./TempleOverlay.css";
 */
 
 const SRC = "/art/temple-arch-lotus-overlay-transparent.png";
+// A smaller copy for phones (about a third of the download). The browser picks
+// whichever fits; `sizes` tells it the picture is shown fairly small on a phone.
+const SRC_SMALL = "/art/temple-arch-lotus-overlay-transparent-1000.png";
+const SRCSET = `${SRC_SMALL} 1000w, ${SRC} 1824w`;
+const SIZES = "(max-width: 700px) 300px, 1368px";
 
 // Facts about the picture itself (its own pixel size) ...
 const NATIVE_WIDTH = 1824;
@@ -97,6 +102,8 @@ export default function TempleOverlay({ visible, anchored }) {
         ref={imgRef}
         className="temple-overlay__img"
         src={SRC}
+        srcSet={SRCSET}
+        sizes={SIZES}
         alt=""
         draggable="false"
         onLoad={place}

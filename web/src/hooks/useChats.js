@@ -10,18 +10,30 @@ import { askQuestion } from "../api/client.js";
 
   A message looks like:
     user:      { id, role: "user", content }
-    assistant: { id, role: "assistant", status, content, sources, ... }
+    assistant: { id, role: "assistant", status, content, ... }
       status = "done" | "error" | "stopped"
+
+  Source details (which documents an answer used) are confidential. The backend
+  never sends them, and this code never stores them. Older versions of the app
+  did save them, so any such leftovers are deleted when the chats are loaded.
 */
 
 const STORAGE_KEY = "scriptureai.chats.v1";
 const MAX_CHATS = 50;
 
+// Removes everything that is only for the screen ("fresh") or that must never be
+// kept ("sources", left over from older versions) from a message.
+function cleanMessage({ fresh, sources, ...rest }) {
+  return rest;
+}
+
 function loadChats() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     const data = raw ? JSON.parse(raw) : [];
-    return Array.isArray(data) ? data : [];
+    if (!Array.isArray(data)) return [];
+    // purge leftovers; the cleaned version is saved again right after the first render
+    return data.map((chat) => ({ ...chat, messages: (chat.messages || []).map(cleanMessage) }));
   } catch {
     return []; // storage blocked or corrupted: start empty
   }
@@ -29,11 +41,9 @@ function loadChats() {
 
 function saveChats(chats) {
   try {
-    // "fresh" only marks a just-arrived answer (used for its entrance
-    // animation), so it is not saved.
     const clean = chats.slice(0, MAX_CHATS).map((chat) => ({
       ...chat,
-      messages: chat.messages.map(({ fresh, ...rest }) => rest),
+      messages: chat.messages.map(cleanMessage),
     }));
     localStorage.setItem(STORAGE_KEY, JSON.stringify(clean));
   } catch {
@@ -87,7 +97,6 @@ export default function useChats() {
           role: "assistant",
           status: "done",
           content: data.answer,
-          sources: data.sources,
           fresh: true,
         });
         setAnswerTick((t) => t + 1);

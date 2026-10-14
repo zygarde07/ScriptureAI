@@ -13,7 +13,18 @@ Large PDF collections are hard to search by meaning. Keyword search misses relev
 3. **Embeddings**: each chunk is converted into a vector with the Sentence Transformers model `all-MiniLM-L6-v2` (runs locally).
 4. **Vector storage**: chunks and vectors are stored in a persistent [ChromaDB](https://www.trychroma.com/) collection named `scripture` in the `db/` folder.
 5. **Retrieval** (`rag.py`): the user's question is embedded with the same model, and the 5 nearest chunks are fetched from ChromaDB.
-6. **Generation** (`rag.py`): the chunks are placed in a prompt that instructs Gemini (`gemini-2.5-flash`) to answer only from the provided context and to say so if the answer is not there.
+6. **Generation** (`rag.py`): the chunks are placed in a prompt that instructs Gemini (`gemini-2.5-flash`) to answer only from the provided context and to say so if the answer is not there. The prompt also contains confidentiality rules (see below).
+
+## Confidentiality of the knowledge sources
+
+Which documents the library contains, and which of them an answer used, is **confidential by design**:
+
+- The API (`POST /api/ask`) returns **only the answer text**. File names, passages, ids and other retrieval details are used inside `rag.py` to build the answer and are never returned. The web interface has no sources panel, and it does not store or log any such details (chat history saved by older versions is cleaned when loaded).
+- The prompt tells the model never to name, quote or hint at the documents behind an answer, and a safety net removes a file name if the model repeats one anyway.
+- Anyone who asks where an answer came from receives: *"I can provide an answer based on my knowledge library, but the underlying source details are confidential."* Clear questions of that kind (for example "which book is this from?") get this reply directly, without calling the model.
+- Retrieval itself is unchanged, so answer quality is unaffected.
+
+Note that the content of an answer can still reflect the underlying texts, and the confidentiality instruction to the model is a request, not a guarantee.
 
 The retrieval and generation logic lives in one module, `rag.py`, and is shared by two front ends: a React web interface (through the small FastAPI server in `api.py`) and the original Streamlit app (`app.py`), which is kept as a fallback.
 
@@ -34,7 +45,7 @@ The retrieval and generation logic lives in one module, `rag.py`, and is shared 
                                                   |
                                      Gemini (gemini-2.5-flash)
                                                   |
-                              answer + the retrieved passages (sources)
+                          answer text only (sources stay private)
 
   React web UI  --/api/ask-->  api.py (FastAPI)  --\
                                                      >-- rag.py
@@ -62,8 +73,12 @@ ScriptureAI/
 ├── api.py             # FastAPI server for the web interface
 ├── app.py             # Streamlit chat app (fallback UI, uses rag.py)
 ├── ingest.py          # Builds the ChromaDB vector store from PDFs
+├── index_data.py      # Exports/rebuilds the index as plain files (used for hosting)
 ├── web/               # React web interface (Vite)
-├── requirements.txt   # Pinned Python dependencies
+├── scripts/           # render_build.sh: the hosting build step
+├── requirements.txt   # Pinned Python dependencies (your computer)
+├── requirements-api.txt  # Slim dependencies for the hosted API
+├── DEPLOYMENT.md      # How to put it online (Vercel + Render)
 ├── .env.example       # Template for your Gemini API key
 ├── .gitignore
 ├── pdfs/              # Put your source PDFs here (not tracked by Git)
@@ -137,6 +152,10 @@ cd web && npm run dev            # terminal 2
 
 Open http://localhost:5173. Requests to `/api` are forwarded to port 8000. The Gemini key is only ever read by the Python server; the browser never sees it. Conversation history is stored in the browser (localStorage) only.
 
+## Putting it online
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for the step-by-step Vercel + Render plan, environment variables, access-code gate and risks. The code repository never contains your documents, the search index, models or keys: the index lives in a separate private repository. Only host documents you have the right to publish.
+
 ## Run the Streamlit fallback
 
 ```bash
@@ -147,7 +166,7 @@ Run the Python commands from the project root, since paths (`db`, `pdfs`) are re
 
 ## Limitations
 
-- In the Streamlit fallback, answers do not show their sources. The web interface shows the retrieved passages and file names under each answer ("Sources"). Page numbers are not stored, only the file name.
+- Answers do not cite or reveal their sources, by design (see "Confidentiality of the knowledge sources"). A user cannot check which text an answer is based on.
 - The Stop button cancels the browser's request; the server may still finish that answer in the background (answers are not streamed).
 - Retrieval always returns the 5 nearest chunks with no relevance threshold, so unrelated questions still get context sent to the model. Grounding relies on the prompt instruction.
 - Each question is answered independently; earlier chat turns are not sent to the model.

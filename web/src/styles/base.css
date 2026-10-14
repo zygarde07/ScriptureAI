@@ -13,6 +13,22 @@ body,
   height: 100%;
 }
 
+html {
+  /* stop phones from enlarging text on their own when turned sideways */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Touch: tapping a control reacts straight away (no double-tap-to-zoom delay). */
+button,
+a,
+summary,
+textarea,
+input {
+  touch-action: manipulation;
+}
+
 body {
   margin: 0;
   background: var(--night);

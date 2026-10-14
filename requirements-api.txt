@@ -1,0 +1,11 @@
+# Slim list for running ONLY the web API on a small server (see DEPLOYMENT.md).
+# It deliberately leaves out PyTorch / sentence-transformers, Streamlit, pypdf and
+# LangChain: those are only needed on your own computer (to build the index and
+# for the Streamlit fallback). Install this with EMBEDDING_BACKEND=onnx.
+# Versions are the ones this project was tested with.
+fastapi==0.143.0
+uvicorn==0.54.0
+chromadb==0.4.24
+google-genai==1.64.0
+python-dotenv==1.2.2
+numpy==1.26.4

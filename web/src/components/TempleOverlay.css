@@ -41,8 +41,10 @@
   user-select: none;
 }
 
+/* On phones the artwork is a little stronger: it is the main atmosphere there
+   (matching the mobile reference), and it is cropped at the sides. */
 @media (max-width: 700px) {
   .temple-overlay__img {
-    opacity: 0.2;
+    opacity: 0.34;
   }
 }

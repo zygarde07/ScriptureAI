@@ -8,12 +8,28 @@ import Thread from "./components/Thread.jsx";
 import Composer from "./components/Composer.jsx";
 import Orb from "./components/orb/Orb.jsx";
 import TempleOverlay from "./components/TempleOverlay.jsx";
+import AccessGate from "./components/AccessGate.jsx";
+import useAccess from "./hooks/useAccess.js";
+import useViewport from "./hooks/useViewport.js";
 import { dur } from "./motion/utils.js";
 import "./styles/app.css";
 
-// The whole product on one screen: a sidebar, the chat area and the orb.
+// What to show first: the chat, or (only when the server asks for it) the
+// access-code screen. On your own computer no code is needed, so you go
+// straight to the chat.
 export default function App() {
+  const { status, unlock } = useAccess();
+
+  if (status === "checking") return <div className="gate gate--blank" />;
+  if (status === "waking") return <AccessGate mode="waking" />;
+  if (status === "locked") return <AccessGate mode="locked" onSubmit={unlock} />;
+  return <ChatApp />;
+}
+
+// The whole product on one screen: a sidebar, the chat area and the orb.
+function ChatApp() {
   const chat = useChats();
+  const { keyboardOpen } = useViewport(); // phone keyboard: keeps the composer visible
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 900);
   const [composerFocused, setComposerFocused] = useState(false);
   const welcomeRef = useRef(null);
@@ -58,10 +74,26 @@ export default function App() {
     if (window.innerWidth < 900) setSidebarOpen(false);
   };
 
+  // While the drawer is closed on a small screen it sits just off-screen.
+  // `inert` stops keyboard users (and screen readers) from reaching its
+  // hidden buttons.
+  useEffect(() => {
+    const apply = () => {
+      const drawer = document.getElementById("sidebar");
+      if (drawer) drawer.inert = window.innerWidth < 900 && !sidebarOpen;
+    };
+    apply();
+    window.addEventListener("resize", apply);
+    return () => window.removeEventListener("resize", apply);
+  }, [sidebarOpen]);
+
   const handleNewChat = () => {
     chat.newChat();
     closeSidebarIfSmall();
-    setTimeout(() => composerRef.current?.focus(), 50);
+    // On a phone, focusing the box would pop the keyboard up uninvited and
+    // hide the suggestions; there the visitor taps the box when ready.
+    const touchScreen = window.matchMedia("(pointer: coarse)").matches;
+    if (!touchScreen) setTimeout(() => composerRef.current?.focus(), 50);
   };
 
   const handleSelect = (id) => {
@@ -70,13 +102,18 @@ export default function App() {
   };
 
   return (
-    <div className="app" data-sidebar={sidebarOpen ? "open" : "closed"}>
+    <div
+      className="app"
+      data-sidebar={sidebarOpen ? "open" : "closed"}
+      data-keyboard={keyboardOpen ? "open" : "closed"}
+    >
       <Sidebar
         chats={chat.chats}
         activeId={chat.activeChat ? chat.activeChat.id : null}
         onNewChat={handleNewChat}
         onSelect={handleSelect}
         onDelete={chat.deleteChat}
+        onClose={closeSidebarIfSmall}
       />
       {/* dark layer behind the sidebar on small screens; click to close */}
       <div className="backdrop" onClick={() => setSidebarOpen(false)} />
@@ -89,6 +126,7 @@ export default function App() {
           sidebarOpen={sidebarOpen}
           onToggleSidebar={() => setSidebarOpen((open) => !open)}
           onNewChat={handleNewChat}
+          mode={mode}
         />
 
         <div className="stage">

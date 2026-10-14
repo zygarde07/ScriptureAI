@@ -3,9 +3,17 @@
    [ sidebar | main ]   main = top bar + stage + composer
    ========================================================= */
 .app {
+  /* Pinned to the screen, with the height of the part you can actually see.
+     --app-height / --app-offset are set by hooks/useViewport.js; they follow
+     the phone keyboard. Without them it is simply the full screen height. */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--app-height, 100dvh);
+  transform: translateY(var(--app-offset, 0px));
   display: grid;
   grid-template-columns: var(--sidebar-w, var(--sidebar-width)) minmax(0, 1fr);
-  height: 100dvh;
   overflow: hidden;
   background:
     radial-gradient(ellipse 60% 50% at 50% 24%, rgba(165, 34, 39, 0.3), transparent 70%),
@@ -24,7 +32,7 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  height: 100dvh;
+  height: 100%;
 }
 
 .stage {
@@ -108,6 +116,9 @@
 .history {
   list-style: none;
   display: grid;
+  /* one column exactly as wide as the sidebar. Without this the column grows to fit the
+     longest title, which pushes the delete buttons out of sight. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 2px;
 }
 
@@ -179,8 +190,15 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  height: var(--topbar-height);
-  padding: 0 var(--space-3);
+  /* env(safe-area-inset-*) = space for a phone's notch / rounded corners */
+  height: calc(var(--topbar-height) + env(safe-area-inset-top, 0px));
+  padding: env(safe-area-inset-top, 0px) max(var(--space-3), env(safe-area-inset-right, 0px)) 0
+    max(var(--space-3), env(safe-area-inset-left, 0px));
+}
+
+/* hamburger on phones/tablets, panel icon on desktop */
+.topbar__menu-hamburger {
+  display: none;
 }
 
 .wordmark {
@@ -234,10 +252,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   padding: 0 var(--space-4);
   text-align: center;
   overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Centre the content vertically when there is room, and let it scroll from
+   the top when there is not (plain `justify-content: center` would cut off the top). */
+.welcome > :first-child {
+  margin-top: auto;
+}
+
+.welcome > :last-child {
+  margin-bottom: auto;
 }
 
 /* the space reserved for the orb; its size follows the screen height */
@@ -281,6 +309,13 @@
   margin-top: var(--space-5);
 }
 
+/* On desktop a suggestion is just a text button. The icon and chevron are
+   only for the phone cards (see the media query at the bottom). */
+.chip__icon,
+.chip__chevron {
+  display: none;
+}
+
 .chip {
   width: 100%;
   height: 100%;
@@ -307,6 +342,8 @@
   position: absolute;
   inset: 0;
   overflow-y: auto;
+  overscroll-behavior: contain; /* scrolling the chat never drags the page behind it */
+  -webkit-overflow-scrolling: touch;
 }
 
 .thread__col {
@@ -414,6 +451,22 @@
   font-size: 0.85em;
 }
 
+/* a wide table scrolls inside this box instead of widening the page */
+.table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.prose pre {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: var(--space-3);
+  border-radius: 0.6rem;
+  background: var(--surface);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
 .prose table {
   width: 100%;
   border-collapse: collapse;
@@ -470,80 +523,6 @@
   cursor: default;
 }
 
-/* ---------- Sources ---------- */
-.sources {
-  margin-top: var(--space-4);
-}
-
-.sources__toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.3rem 0.7rem 0.3rem 0.55rem;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--muted);
-  font-family: var(--font-ui);
-  font-size: 0.78rem;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  transition: color 0.2s ease, border-color 0.2s ease;
-}
-
-.sources__toggle:hover {
-  color: var(--gold-light);
-  border-color: var(--line-gold);
-}
-
-.sources__toggle svg:last-child {
-  transition: transform 0.3s ease;
-}
-
-.sources__toggle svg.is-open {
-  transform: rotate(180deg);
-}
-
-/* GSAP animates this panel's height; it starts closed */
-.sources__panel {
-  height: 0;
-  overflow: hidden;
-  visibility: hidden;
-}
-
-.sources__list {
-  list-style: none;
-  display: grid;
-  gap: var(--space-2);
-  padding-top: var(--space-3);
-}
-
-.source {
-  border: 1px solid var(--line);
-  border-radius: 0.8rem;
-  background: var(--surface);
-  font-family: var(--font-ui);
-}
-
-.source__name {
-  padding: 0.6rem var(--space-3);
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: var(--gold-light);
-  cursor: pointer;
-  overflow-wrap: anywhere;
-}
-
-.source__text {
-  margin: 0;
-  padding: 0 var(--space-3) var(--space-3);
-  font-size: 0.85rem;
-  line-height: 1.6;
-  color: var(--cream-soft);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
 /* ---------- Loading indicator ---------- */
 .thinking {
   display: flex;
@@ -585,7 +564,10 @@
 .composer-wrap {
   position: relative;
   z-index: 8;
-  padding: var(--space-2) var(--space-4) var(--space-3);
+  /* env(safe-area-inset-bottom) keeps the box clear of a phone's home bar */
+  padding: var(--space-2) max(var(--space-4), env(safe-area-inset-right, 0px))
+    calc(var(--space-3) + env(safe-area-inset-bottom, 0px))
+    max(var(--space-4), env(safe-area-inset-left, 0px));
   background: linear-gradient(to top, var(--night) 40%, transparent);
 }
 
@@ -669,26 +651,48 @@
   color: var(--faint);
 }
 
-/* ---------- Tablet and phone ---------- */
+/* on desktop the two parts share one line, separated by a dot */
+.composer__note::before {
+  content: "\00a0\00b7\00a0"; /* a dot with non-breaking spaces around it */
+}
+
+/* =========================================================
+   TABLETS AND PHONES
+   Desktop (900px and wider) is not affected by anything below,
+   except where a rule is marked "any size".
+   ========================================================= */
+
+/* ---------- Tablet and phone: the sidebar becomes a drawer ---------- */
 @media (max-width: 899px) {
   .app {
     grid-template-columns: 1fr;
   }
 
-  /* the sidebar becomes a drawer on top of the page */
   .sidebar {
     position: fixed;
     inset: 0 auto 0 0;
     z-index: 40;
-    width: min(84vw, 19rem);
+    width: min(86vw, 20rem);
     border-right: 1px solid var(--line-gold);
     background: var(--night-2);
+    box-shadow: 8px 0 40px rgba(0, 0, 0, 0.5);
     transform: translateX(-100%);
     transition: transform 0.35s ease;
   }
 
+  .sidebar__inner {
+    width: 100%;
+    padding-top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+    overscroll-behavior: contain;
+  }
+
   .app[data-sidebar="open"] .sidebar {
     transform: none;
+  }
+
+  .app[data-sidebar="closed"] .sidebar {
+    box-shadow: none; /* no shadow peeking in while it is closed */
   }
 
   .app[data-sidebar="open"] .backdrop {
@@ -696,44 +700,255 @@
     position: fixed;
     inset: 0;
     z-index: 30;
-    background: rgba(0, 0, 0, 0.55);
+    background: rgba(0, 0, 0, 0.6);
   }
 
-  .topbar__new span {
+  /* header: hamburger, wordmark, "New chat" */
+  .topbar__menu-hamburger {
+    display: block;
+  }
+
+  .topbar__menu-panel {
     display: none;
   }
 
+  .icon-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+    color: var(--cream-soft);
+  }
+
+  .wordmark {
+    font-size: 1.25rem;
+  }
+
   .topbar__new {
-    padding: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0 0.95rem;
+    border-color: var(--line-gold);
+    border-radius: 0.85rem;
+    color: var(--gold-light);
+    font-size: 0.92rem;
+  }
+
+  /* while a conversation is open the button shrinks to a square "+" */
+  .topbar[data-mode="chat"] .topbar__new {
+    width: 2.75rem;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .topbar[data-mode="chat"] .topbar__new span {
+    display: none;
+  }
+
+  /* drawer list: bigger touch targets, delete button always visible */
+  .new-chat {
+    min-height: 3rem;
+    font-size: 0.98rem;
+  }
+
+  .history__item {
+    padding-block: 0.85rem;
+    font-size: 0.95rem;
+  }
+
+  .history__delete {
+    width: 2.5rem;
+    height: 2.5rem;
+    right: 2px;
+    opacity: 1;
+    color: var(--muted);
+  }
+
+  /* While a conversation is open, the small orb sits just left of the "+" button
+     (in the middle it would sit on top of the wordmark on a narrow screen). */
+  .topbar__orb {
+    left: auto;
+    right: calc(2.75rem + var(--space-3) + max(var(--space-3), env(safe-area-inset-right, 0px)));
+    transform: translateY(-50%);
+  }
+
+  .retry {
+    min-height: 2.75rem;
+    padding-inline: 1.1rem;
+    font-size: 0.92rem;
   }
 }
 
+/* ---------- Phone ---------- */
 @media (max-width: 600px) {
+  .welcome {
+    padding-inline: var(--space-4);
+  }
+
   .welcome__orb {
-    width: clamp(120px, 23vh, 220px);
-    height: clamp(120px, 23vh, 220px);
+    width: clamp(120px, 22vh, 220px);
+    height: clamp(120px, 22vh, 220px);
+  }
+
+  .welcome__title {
+    font-size: clamp(1.95rem, 8vw, 2.4rem);
+    line-height: 1.12;
   }
 
   .welcome__text {
-    font-size: 1.05rem;
+    margin-top: var(--space-3);
+    font-size: 1.08rem;
+    line-height: 1.5;
   }
 
+  /* suggestions: one column of cards, each with an icon and a chevron */
   .chips {
     grid-template-columns: 1fr;
-    gap: 0.4rem;
+    gap: 0.6rem;
     margin-top: var(--space-4);
   }
 
   .chip {
-    padding: 0.5rem var(--space-3);
-    font-size: 0.84rem;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 3.6rem;
+    padding: 0.55rem var(--space-3) 0.55rem var(--space-3);
+    border-color: rgba(207, 64, 70, 0.35);
+    border-radius: 1rem;
+    background: rgba(34, 14, 14, 0.62);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    font-size: 1rem;
+    line-height: 1.35;
+    text-align: left;
+  }
+
+  .chip:hover {
+    transform: none;
+  }
+
+  .chip:active {
+    background: var(--surface-strong);
+    border-color: var(--line-gold);
+  }
+
+  .chip__icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 2.4rem;
+    height: 2.4rem;
+  }
+
+  .chip__icon--ember {
+    color: #e8884a;
+  }
+
+  .chip__icon--rose {
+    color: #ee8d8d;
+  }
+
+  .chip__icon--gold {
+    color: var(--gold-light);
+  }
+
+  .chip__text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .chip__chevron {
+    display: block;
+    flex: 0 0 auto;
+    color: var(--muted);
+  }
+
+  /* the message box: large and rounded, with the keyboard hints beneath it */
+  .composer {
+    padding: 0.4rem 0.45rem 0.4rem 1.2rem;
+    border-radius: 1.8rem;
+    border-color: rgba(207, 64, 70, 0.45);
+  }
+
+  .composer__btn {
+    width: 2.85rem;
+    height: 2.85rem;
+  }
+
+  .composer__hint {
+    margin-top: 0.4rem;
+    font-size: 0.68rem;
+    line-height: 1.35;
+  }
+
+  /* second line on phones: the short notice about answers */
+  .composer__note {
+    display: block;
+    margin-top: 0.1rem;
+    text-wrap: balance; /* two even lines, not one long line and one lonely word */
+  }
+
+  .composer__note::before {
+    content: none;
+  }
+
+  /* conversation: readable and roomy without side-scrolling */
+  .thread__col {
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-3) var(--space-5);
+  }
+
+  .msg--user {
+    max-width: 92%;
+    font-size: 1rem;
+  }
+
+  .msg--bot {
+    padding-left: var(--space-3);
+  }
+
+  .prose {
+    font-size: 1.16rem;
+    line-height: 1.68;
+  }
+}
+
+/* ---------- Phone keyboard is open ---------- */
+/* Make room: the hints go, and the orb gets smaller so the suggestions and
+   the message box both stay in view. */
+.app[data-keyboard="open"] .composer__hint {
+  display: none;
+}
+
+.app[data-keyboard="open"] .welcome__orb {
+  width: 96px;
+  height: 96px;
+}
+
+.app[data-keyboard="open"] .composer-wrap {
+  padding-bottom: var(--space-2);
+}
+
+/* ---------- Short screens (a phone turned sideways) ---------- */
+@media (max-height: 520px) {
+  .welcome__orb {
+    width: 100px;
+    height: 100px;
+  }
+
+  .welcome__text {
+    display: none;
   }
 
   .composer__hint {
     display: none;
   }
+}
 
-  .msg--user {
-    max-width: 92%;
+/* ---------- Touch screens (any size) ---------- */
+@media (hover: none) {
+  .history__delete {
+    opacity: 1;
+  }
+
+  .chip:hover {
+    transform: none;
   }
 }

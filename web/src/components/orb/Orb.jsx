@@ -116,9 +116,11 @@ export default function Orb({ mode, state, sendTick, answerTick }) {
       const main = el.parentElement.getBoundingClientRect();
       const box = anchor.getBoundingClientRect();
       const size = Math.min(box.width, box.height);
-      // The orb is centred horizontally by CSS, so we only set the
-      // vertical offset and the scale.
+      // The orb starts out centred horizontally (by CSS). `x` is how far the
+      // spot is from the centre: 0 on the first screen and on desktop, but on a
+      // phone the small orb sits beside the "+" button, to the right of the middle.
       const target = {
+        x: box.left + box.width / 2 - (main.left + main.width / 2),
         y: box.top - main.top + box.height / 2 - BASE / 2,
         scale: size / BASE,
       };
@@ -145,10 +147,14 @@ export default function Orb({ mode, state, sendTick, answerTick }) {
     // On short screens the welcome text can scroll; the orb follows its spot.
     // (capture: true also catches scrolling inside child elements)
     window.addEventListener("scroll", onResize, true);
+    // On iPhones the keyboard shrinks the visible area without a window resize.
+    const vv = window.visualViewport;
+    if (vv) vv.addEventListener("resize", onResize);
     if (document.fonts) document.fonts.ready.then(onResize);
     return () => {
       window.removeEventListener("resize", onResize);
       window.removeEventListener("scroll", onResize, true);
+      if (vv) vv.removeEventListener("resize", onResize);
     };
   }, [place]);
 

@@ -2,7 +2,7 @@ import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { SendIcon, StopIcon } from "./icons.jsx";
 
 const MAX_HEIGHT = 144; // about six lines
-const MAX_LENGTH = 2000;
+const MAX_LENGTH = 1000; // the server accepts questions up to 1000 characters
 
 // The message box. Enter sends, Shift+Enter adds a new line.
 // While an answer is loading, the send button becomes a Stop button.
@@ -82,7 +82,8 @@ const Composer = forwardRef(function Composer(
         )}
       </form>
       <p className="composer__hint">
-        Enter to send · Shift+Enter for a new line · Answers are grounded in your library's texts and may be incomplete.
+        <span className="composer__keys">Enter to send · Shift+Enter for a new line</span>
+        <span className="composer__note">Answers are grounded in your library's texts and may be incomplete.</span>
       </p>
     </div>
   );
